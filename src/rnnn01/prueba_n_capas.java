@@ -25,6 +25,7 @@ public class prueba_n_capas {
 		int id;
 		boolean flag;
 		double pesos_preconf[];
+		double predicts_resultado[][];
 
 		// constructor
 		mini_red(double ingreso_[][], int ocultas_[], double salida_[][], int id_, boolean flag_,
@@ -44,7 +45,14 @@ public class prueba_n_capas {
 			rn.prueba(ingreso);
 			w_hilo = rn.w;
 			salida_prueba = rn.resul_prueba;
-
+			predicts_resultado = rn.predicts_resultado;
+			/*
+			System.out.println("Resultado predict_resultado, hilo ["+id+"]");
+			int i = 0;
+			for(double[] m: predicts_resultado) {
+				System.out.println("pr["+i+"] = "+ Arrays.toString(m));
+				i++;
+			}*/
 			int success = 0;
 			int k = 0;
 			for (double[] sasa : salida) {
@@ -53,7 +61,7 @@ public class prueba_n_capas {
 				}
 				k++;
 			}
-			acc = success / salida_prueba.length;
+			acc = (double) success / salida_prueba.length;
 
 			// variables que usan todos los hilos
 			accuracy[id] = acc;
@@ -65,7 +73,7 @@ public class prueba_n_capas {
 			}
 			pesos.add(id,tmp);
 			
-			System.out.println("Termina ejecucion del hilo "+id+"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			System.out.println("Termina ejecucion del hilo "+id);
 		}
 	}
 
@@ -92,6 +100,7 @@ public class prueba_n_capas {
 		String root_dog = "dog_entreno/dog.";
 		int imagesn = 10;
 		double ingreso[][] = new double[imagesn * 2][];
+		//LECTURA IMAGENES GATOS ENTRENAMIENTO (10)
 		for (int ind = 1; ind <= imagesn; ind++) {
 			Leerjpg ingresoImg = new Leerjpg(root + ind + ".jpg");
 			System.out.println(" Verificacion, paso el primer jpg");
@@ -107,7 +116,7 @@ public class prueba_n_capas {
 			}
 			ingreso[ind - 1] = matriz_lec1d;
 		}
-
+		//LECTURA IMAGENES PERROS ENTRENAMIENTO (10)
 		for (int ind = 1; ind <= imagesn; ind++) {
 			Leerjpg ingresoImg = new Leerjpg(root_dog + ind + ".jpg");
 			double matriz_lec[][] = ingresoImg.getfinal_matriz();
@@ -125,6 +134,7 @@ public class prueba_n_capas {
 
 		double evaluar[][] = new double[10][];
 
+		//LECTURA IMAGENES GATOS EVALUAR (5)
 		String root_test = "cat_test/gato_";
 		String root_dog_test = "dog_test/perro_";
 		for (int ind = 1; ind <= 5; ind++) {
@@ -141,7 +151,7 @@ public class prueba_n_capas {
 			}
 			evaluar[ind - 1] = matriz_lec1d;
 		}
-
+		//LECTURA IMAGENES PERROS EVALUAR (5)
 		for (int ind = 1; ind <= 5; ind++) {
 			Leerjpg ingresoImg = new Leerjpg(root_dog_test + ind + ".jpg");
 			double matriz_lec[][] = ingresoImg.getfinal_matriz();
@@ -165,11 +175,11 @@ public class prueba_n_capas {
 			Arrays.fill(salida[k], 0.0);
 		}
 
-		int ocultas[] = { 15, 13, 14 };
+		int ocultas[] = { 25, 14, 10 };
 
-		// ****************** parelelizacion
+		// Paralelizacion
 
-		System.out.println("Genera hilossssssssssssssssssssssssssssssssssssssss");
+		System.out.println("Genera hilos");
 		// ===== Barrera 1
 		Thread grupo1[] = new Thread[hilos];
 		for (int i = 0; i < hilos; i++) {
@@ -228,6 +238,7 @@ public class prueba_n_capas {
 		for (int i = 0; i < pesos.get(id_max).size(); i++) {
 			elpeso[i] = pesos.get(id_max).get(i);
 		}
+
 		
 		try {
 			GuardarPeso(elpeso);

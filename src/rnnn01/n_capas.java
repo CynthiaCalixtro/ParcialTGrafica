@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -12,38 +13,31 @@ public class n_capas {
 	int ci;
 	int co;
 	int cs;
-
-	int capas;
-
-	double xin[][];// ={{0,1,0},{0,1,1},{1,0,0},{1,0,1}};
-	// double xin[][]={{0,1,0},{0,1,1},{1,0,0},{1,0,1}};
-	double xout[][];// ={{1},{0},{1},{0}};
-
+	double xin[][];
+	double xout[][];
 	double y[];
-	int resul_prueba[];
-
-//   double w[]={2,-2,0,1,3,-1,3,-2};
-//   double s[]={0,0,0};
 	double s[];
 	double g[];
-//   double g[]={0,0,0};
 	double w[];
 
-//   int c[] = {3,2,1};//capas de datos
 	int c[];// =new int[3];//capas de datos
+	int resul_prueba[];
+	double predicts_resultado[][];
+
+	int capas;
 
 	public n_capas(int ci_, int[] co_, int cs_, boolean pesos, double pesos_preconf[]) {
 		int ci = ci_; // cantidad de neuronas de entrada
 		int co[] = co_; // cantidad de neuronas de oculta x capa [3,5,6,3,6,7]
 		int cs = cs_;
 
-		int neuronas = IntStream.of(co).sum() + cs + ci; // cantidad de neuronas
-		y = new double[neuronas - ci];
-		s = new double[neuronas - ci];
-		g = new double[neuronas - ci];
-
-		capas = co.length + 2;
-		c = new int[capas];
+		int neuronas = 0;
+		for (int i=0;i<co.length;i++){
+			neuronas += co[i];
+		}
+		y = new double[neuronas + cs];
+		s = new double[neuronas + cs];
+		g = new double[neuronas + cs];
 
 		// calculando cantidad de pesos
 		int acum = ci * co[0];
@@ -52,6 +46,8 @@ public class n_capas {
 		}
 		acum += co[co.length - 1] * cs;
 
+		capas = co.length + 2;
+		c = new int[capas];
 		w = new double[acum];
 
 		c[0] = ci; // primera capa
@@ -88,9 +84,10 @@ public class n_capas {
 	public void printxingreso() {
 		// visualizar x ingreso
 		for (int i = 0; i < xin.length; i++)
-			for (int j = 0; j < xin[i].length; j++)
+			for (int j = 0; j < xin[i].length; j++) {
 				System.out.println("xingreso[" + i + "," + j + "]=" + xin[i][j]);
-		System.out.println("                ");
+				System.out.println("                ");
+			}
 	}
 
 	public void printxysalida() {
@@ -137,69 +134,64 @@ public class n_capas {
 		int ii;
 		double pls;
 		int ci;
-
-		// entrenamiento
-		//////////////////////////////////
-		////// ******** Ida**********//////
-		// +++++++capa1
-		/// ci=0;//entrenamiento primero /////HOPE
+		int yy = 0;
 		ci = cii;
-		ii = 0;// capa0*capa1
-		pls = 0;
+		ii = 0;// capa0*capa
+
 		for (int i = 0; i < c[1]; i++) {
+			pls = 0;
 			for (int j = 0; j < c[0]; j++) {
-				System.out.println("psl=" + pls + " , W[ii]=" + w[ii] + " , xin[ci][j]=" + xin[ci][j]);
+				//System.out.println("psl=" + pls + " , W[ii]=" + w[ii] + " , xin[ci][j]=" + xin[ci][j]);
 				pls = pls + w[ii] * xin[ci][j];
 				ii++;
 			}
 			s[i] = pls; // i = i+ capa0
 			y[i] = fun(s[i]); // i = i+ capa0
-			pls = 0;
+			yy++;
 		}
-		// ++++++capa2
+		// CAPAS INTERMEDIAS
+		int ypp =0;
 		int n = c.length; // cantidad de capas
 		for (int k = 1; k < n - 1; k++) {
-			pls = 0;
-			ii = c[k - 1] * c[k];// capa(k-1)*capa(k+2) <-- ii = c[0]*c[1];//capa1*capa2
 			for (int i = 0; i < c[k + 1]; i++) {
+				pls = 0;
 				for (int j = 0; j < c[k]; j++) {
-					pls = pls + w[ii] * y[j];
+					pls = pls + w[ii] * y[j + ypp];
 					ii++;
 				}
-				s[i + c[k]] = pls; // i = i + capa1
-				y[i + c[k]] = fun(s[i + c[k]]); // i = i + capa1
-				pls = 0;
+				s[yy] = pls; // i = i + capa1
+				y[yy] = fun(s[yy]); // i = i + capa1
+				yy++;
 			}
+			ypp = ypp + c[k];
 		}
-
-		for (int i = 0; i < c[capas - 1]; i++) {
-			g[i + c[capas - 2]] = (xout[ci][i] - y[i + c[capas - 2]]) * y[i + c[capas - 2]] * (1 - y[i + c[capas - 2]]);
+		yy--;
+		for (int i =c[n -1] -1; i>=0; i--){
+			g[yy] = (xout[ci][i] - y[yy])* y[yy] * (1-y[yy]);
+			yy--;
 		}
+		// cantidad de ws
+		int total_w = 0;
+		for(int i=1;i<c.length;i++){
+			total_w += c[i-1]*c[i];
+		}
+		ii--;
 
-		// ++++capa1 g
-		for (int k = n - 1; k >= 2; k--) {
+		// capas intermedias g
+		for (int k = n - 2; k >= 1; k--) {
 			pls = 0;
-			for (int i = 0; i < c[k - 1]; i++) {
-				for (int j = 0; j < c[k]; j++) {
-					pls = pls + w[c[k - 2] * c[k - 1] + j * c[k - 1] + i] * g[c[k - 1] + j];
-				}
-				g[i] = y[i] * (1 - y[i]) * pls;
-				pls = 0;
-			}
-		}
-
-		// *** ACTUALIZACION ***
-		for (int k = n - 1; k >= 2; k--) {
-			ii = c[k - 2] * c[k - 1];// capa1*capa2
+			total_w -= c[k]*c[k+1];
 			for (int i = 0; i < c[k]; i++) {
-				for (int j = 0; j < c[k - 1]; j++) {
-					w[ii] = w[ii] + g[i + c[k - 1]] * y[j];
-					ii++;
+				for (int j = 0; j < c[k+1]; j++) {
+					pls = pls + w[total_w + j*c[k]] * g[c[k] + j];
 				}
+				g[yy] = y[yy] * (1 - y[yy]) * pls;
+				pls = 0;
+				yy--;
 			}
 		}
 
-		// ++++capa1 w
+		int gpp = 0;
 		ii = 0;// capa0*capa1
 		for (int i = 0; i < c[1]; i++) {
 			for (int j = 0; j < c[0]; j++) {
@@ -207,27 +199,33 @@ public class n_capas {
 				ii++;
 			}
 		}
-		////// ----------Fin Vuelta--------/////
-		// printg();
-		// printy();
-		// prints();
-		// printw();
-		// printxingreso();
-		// printxysalida();
-		// System.out.println("----------------------****Fin****------------------------");
+		gpp += c[1];
+		ypp = 0;
+		for (int k = 2; k < n ; k++) {
+			for (int i = 0; i < c[k]; i++) {
+				for (int j = 0; j < c[k - 1]; j++) {
+					w[ii] = w[ii] + g[gpp] * y[ypp + j];
+					ii++;
+				}
+				gpp++;
+			}
+			ypp += c[k-1];
+		}
+
 	}
 
 	public void prueba(double[][] pruebas) {
 		double prubs[] = new double[c[0]];
 		resul_prueba = new int[pruebas.length];
+		predicts_resultado = new double[pruebas.length][];
 
 		for (int i = 0; i < pruebas.length; i++) {
 			for (int j = 0; j < pruebas[i].length; j++) {
 				prubs[j] = pruebas[i][j];
-				// System.out.println("["+i+","+j+"]"+pruebas[i][j]);
 			}
 			usored(prubs,i);
 		}
+		System.out.println("Array c:" + Arrays.toString(c));
 
 	}
 
@@ -246,28 +244,20 @@ public class n_capas {
 	}
 
 	public void usored(double[] datatest, int iresprueba) {
-		System.out.println("-----------****Inicio Test****----------");
 		int ii;
 		double pls;
-		// int ci;
+		int yy = 0;
 
-		// entrenamiento
-		//////////////////////////////////
-		////// ******** Ida**********//////
-		// +++++++capa1
-		/// ci=0;//entrenamiento primero /////HOPE
-		// ci=cii;
 		ii = 0;// capa0*capa1
-		pls = 0;
 		for (int i = 0; i < c[1]; i++) {
+			pls = 0;
 			for (int j = 0; j < c[0]; j++) {
-				// pls=pls+w[ii]*xin[ci][j];
 				pls = pls + w[ii] * datatest[j];
 				ii++;
 			}
-			s[i] = pls; // i = i+ capa0
-			y[i] = fun(s[i]); // i = i+ capa0
-			pls = 0;
+			s[yy] = pls; // i = i+ capa0
+			y[yy] = fun(s[yy]); // i = i+ capa0
+			yy++;
 		}
 		// ++++++capa2
 		/*
@@ -275,46 +265,50 @@ public class n_capas {
 		 * j=0;j<c[1];j++){ pls=pls+w[ii]*y[j]; ii++; } s[i+c[1]]=pls; //i = i + capa1
 		 * y[i+c[1]]=fun(s[i+c[1]]); //i = i + capa1 pls=0; }
 		 */
+		int ypp = 0;
 		int n = c.length; // cantidad de capas
 		for (int k = 1; k < n - 1; k++) {
-			pls = 0;
-			ii = c[k - 1] * c[k];// capa(k-1)*capa(k+2) <-- ii = c[0]*c[1];//capa1*capa2
 			for (int i = 0; i < c[k + 1]; i++) {
+				pls = 0;
 				for (int j = 0; j < c[k]; j++) {
-					pls = pls + w[ii] * y[j];
+					pls = pls + w[ii] * y[j + ypp];
 					ii++;
 				}
-				s[i + c[k]] = pls; // i = i + capa1
-				y[i + c[k]] = fun(s[i + c[k]]); // i = i + capa1
-				pls = 0;
+				s[yy] = pls; // i = i + capa1
+				y[yy] = fun(s[yy]); // i = i + capa1
+				yy++;
 			}
+			ypp += c[k];
 		}
-
-		// printy();
-		// printy();
-		System.out.print("prueba");
-		for (int i = 0; i < datatest.length; i++) {
-			System.out.print("[" + datatest[i] + "] ");
+		yy--;
+		/*
+		System.out.println("entrada_dataset: ");
+		int indexito =0;
+		for(double x: datatest){
+			System.out.println("("+indexito+"):"+Math.round(x*100)/100);
+			indexito++;
 		}
-		System.out.println();
-		System.out.print("salida:  ");
+		System.out.println("entrada_dataset_fin: ");
+		*/
+		System.out.print("salida:");
 		// for(int i=(co-1);i<(co+cs);i++){
 		// for(int i=2;i<3;i++){
-		for (int i = c[capas - 2]; i < (c[capas - 2] + c[capas - 1]); i++) {// for(int i=c[1];i<(c[1]+c[2]);i++){
-			if (y[i] > 0.50) {
-				System.out.printf("y[i]" + y[i]);
-				System.out.printf(" , GATO >.<");
-				resul_prueba[iresprueba] = 1;
-			} else {
-				System.out.printf("y[i]" + y[i]);
-				System.out.printf(" , PERRO ().()");
-				resul_prueba[iresprueba] = 0;
-			}
-			iresprueba++;
+		int ip = 0;
+		double[] predict = new double[c[n-1]];
+		for(int i = c[n-1] -1; i>=0; i--){
+			System.out.println("yy:"+yy+ " i: "+i+" , y["+(yy-i)+"]");
+			predict[ip] = y[yy-i];
+			ip++;
 		}
-		System.out.println();
-
-		// System.out.println("-----------****Fin Test****----------");
+		predicts_resultado[iresprueba] = predict;
+		if(predicts_resultado[iresprueba][0] <= 0.5){
+			resul_prueba[iresprueba] = 0;
+			System.out.println("pre: " + predicts_resultado[iresprueba][0]+ " -> GATO");
+		}
+		else {
+			resul_prueba[iresprueba] = 1;
+			System.out.println("pre: " + predicts_resultado[iresprueba][0]+ " -> PERRO");
+		}
 
 	}
 

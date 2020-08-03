@@ -92,7 +92,7 @@ public class Leerjpg extends Component {
 				mapaCarac[i][j] = multiplyMatrices(getsubMatrix(graycy, filas_rasgos, i, j), rasgos);
 			}
 		}
-		
+		/*
 		System.out.println("\n\n============ Kernel ============");
 		for (int i = 0; i < filas_rasgos; i++) {
 			for (int j = 0; j < columnas_rasgos; j++) {
@@ -100,7 +100,7 @@ public class Leerjpg extends Component {
 			}
 			System.out.println("");
 		}
-
+		*/
 		return mapaCarac;
 	}
 
@@ -143,7 +143,7 @@ public class Leerjpg extends Component {
                 BufferedImage image = resizeImage(img, 200, 200);
 		int w = image.getWidth();
 		int h = image.getHeight();
-		System.out.println("width, height: " + w + ", " + h+"\n");
+		//System.out.println("width, height: " + w + ", " + h+"\n");
 
 		double matriz[][] = new double[h][w];
 
@@ -160,8 +160,9 @@ public class Leerjpg extends Component {
 			}
 		}
 	
-		System.out.println("\n\n============ Matriz escala de grises ============");
-		printMatrix(matriz);
+		//
+		// System.out.println("\n\n============ Matriz escala de grises ============");
+		//printMatrix(matriz);
             
                 double kernel[][][] ={ { { 1,0,1}, { 0,1,0 },{ 1, 0, 1 }},//kernel del profe
                                     { {1 / 9.0, 1 / 9.0, 1 / 9.0},{1 / 9.0, 1 / 9.0, 1 / 9.0},{1 / 9.0, 1 / 9.0, 1 / 9.0}},//kernel box
@@ -179,26 +180,26 @@ public class Leerjpg extends Component {
                         break;
                     }
                     double convi[][] = convolucion(final_matriz,rasgos);
-                    System.out.println("Iteración: "+ count+"dimension de convi" );
+                    //System.out.println("Iteración: "+ count+"dimension de convi" );
                     h=convi.length;
-                    System.out.println("h: " + h  );
+                    //System.out.println("h: " + h  );
                     w=convi[0].length;
-                    System.out.println( "w: " + w );
+                    //System.out.println( "w: " + w );
                     if(h<10 || w<10){
                         break;
                     }
                     
                     final_matriz=pooling(convi,2);
-                    System.out.println("Iteración: "+ count+"dimension del pooling" );
+                    //System.out.println("Iteración: "+ count+"dimension del pooling" );
                     h=final_matriz.length;
-                    System.out.println("h: " + h  );
+                    //System.out.println("h: " + h  );
                     w=final_matriz[0].length;
-                    System.out.println( "w: " + w );
+                    //System.out.println( "w: " + w );
                     count++;
                 }
                 
-                System.out.println("\n\n============ Final matriz :) ============");
-                printMatrix(final_matriz);
+                //System.out.println("\n\n============ Final matriz :) ============");
+                //printMatrix(final_matriz);
                 this.final_matriz = final_matriz;
                         
                
