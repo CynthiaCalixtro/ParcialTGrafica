@@ -98,7 +98,7 @@ public class prueba_n_capas {
 	void inicio() {
 		String root = "cat_entreno/cat.";
 		String root_dog = "dog_entreno/dog.";
-		int imagesn = 10;
+		int imagesn = 100;
 		double ingreso[][] = new double[imagesn * 2][];
 		//LECTURA IMAGENES GATOS ENTRENAMIENTO (10)
 		for (int ind = 1; ind <= imagesn; ind++) {
@@ -166,12 +166,12 @@ public class prueba_n_capas {
 			}
 			evaluar[ind + 4] = matriz_lec1d;
 		}
-		double salida[][] = new double[20][1];
-		for (int k = 0; k < 10; k++) {
+		double salida[][] = new double[imagesn*2][1];
+		for (int k = 0; k < imagesn; k++) {
 			Arrays.fill(salida[k], 1.0);
 
 		}
-		for (int k = 10; k < 20; k++) {
+		for (int k = imagesn; k < imagesn*2; k++) {
 			Arrays.fill(salida[k], 0.0);
 		}
 
