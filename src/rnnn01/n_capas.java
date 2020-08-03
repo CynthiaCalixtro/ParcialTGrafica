@@ -76,6 +76,7 @@ public class n_capas {
 	}
 	
 	public void setPesos(double w_[]) {
+		System.out.println("Oe queeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 		for (int i=0; i<w.length; i++) {
 			w[i] = w_[i];
 		}
